@@ -23,6 +23,7 @@
 ////////////////////     INITIALIZE DOM ELEMENTS       //////////////////
 /////////////////////////////////////////////////////////////////////////
 var tacklebox = new TackleBox(); //NO NOT MODIFY THIS LINE
+tacklebox.init(); //NO NOT MODIFY THIS LINE
 
 /////////////////////////////////////////////////////////////////////////
 //////////////////////         ADD FUNCTIONS        /////////////////////
@@ -47,8 +48,16 @@ function fn5(){ }
 ////////////////////       INITIALIZE TACKLEBOX       ///////////////////
 /////////////////////////////////////////////////////////////////////////
 function TackleBox(){
+  this._initialized = false;
+
   /*Initialize all tacklebox elements*/
   this.init = function(){
+    //check if elements already exist. Only one of each can exist
+    var existingPane = document.getElementById('tacklebox-pane');
+    var existingToast = document.getElementById('tacklebox-toast');
+    var existingToastMsg = document.getElementById('tacklebox-msg');
+    var existingStyle = document.getElementsByClassName('tacklebox-style');
+
     //create DOM elements
     var pane = document.createElement('div');
     pane.id = 'tacklebox-pane';
@@ -61,19 +70,49 @@ function TackleBox(){
 
     //insert elements into DOM
     var body = document.getElementsByTagName('body');
-    document.body.appendChild(pane);
-    toast.appendChild(msg);
-    document.body.appendChild(toast);
+
+    if(!existingPane){
+      document.body.appendChild(pane);
+    }else{
+      console.log(warnMessage("TackleBox pane already exists"))
+    }
+
+    if(!existingToast){
+      document.body.appendChild(toast);
+    }else{
+      console.log(warnMessage("TackleBox toast already exists"))
+    }
+
+    if(!existingToastMsg){
+      toast.appendChild(msg);
+    }else{
+      console.log(warnMessage("TackleBox toast message already exists"))
+    }
 
     //insert stylesheet
     //to update: modify tacklebox.less file, compile css and minify;
     //then, assign minified string to tackleboxStyle
-    var tackleboxStyle = '#tacklebox-pane{background-color:#039be5;box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);height:60px;left:0;padding:10px;position:fixed;top:0;z-index:1000000}#tacklebox-pane button{background-color:#fff;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.24);font:10pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;height:40px;margin-right:7px;outline:0;transition:all .3s cubic-bezier(.25, .8, .25, 1);width:40px}#tacklebox-pane button:nth-last-of-type(1){margin-right:0}#tacklebox-pane button:hover{box-shadow:0 10px 20px rgba(0,0,0,0.25),0 7px 7px rgba(0,0,0,0.22)}#tacklebox-pane button:active,#tacklebox-pane button :focus{box-shadow:0 4px 8px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22)}#tacklebox-msg{display:table-cell;font:11pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;vertical-align:middle}#tacklebox-toast{box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);position:fixed;min-height:60px;max-width:50%;padding:10px 15px;background-color:#039be5;right:0;top:0;vertical-align:middle;opacity:0;transition:.5s opacity;display:table}#tacklebox-toast.open{opacity:1;transition:.25s opacity}'
-    addStyleString(tackleboxStyle);
+    if(!existingToastMsg){
+      var tackleboxStyle = '#tacklebox-pane{background-color:#039be5;box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);box-sizing:initial !important;min-height:40px;left:0;padding:10px 10px 3px 10px;position:fixed;top:0;z-index:1000000}#tacklebox-pane button{background-color:#fff;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.24);font:10pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;height:40px;margin-bottom:7px;margin-right:7px;outline:0;transition:all .3s cubic-bezier(.25, .8, .25, 1);min-width:40px}#tacklebox-pane button:nth-last-of-type(1){margin-right:0}#tacklebox-pane button:hover{box-shadow:0 10px 20px rgba(0,0,0,0.25),0 7px 7px rgba(0,0,0,0.22)}#tacklebox-pane button:active,#tacklebox-pane button:focus{box-shadow:0 4px 8px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22)}#tacklebox-msg{display:table-cell;font:11pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;vertical-align:middle}#tacklebox-toast{box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);position:fixed;min-height:60px;max-width:50%;padding:10px 15px;background-color:#039be5;right:0;top:0;vertical-align:middle;opacity:0;transition:.5s opacity;display:table;z-index:1000001}#tacklebox-toast.open{opacity:1;transition:.25s opacity}'
+      addStyleString(tackleboxStyle);
+    }
+
+    this._initialized = true;
   };
 
-  /* Add a button to the tacklebox*/
+  /* Add a button to the tacklebox */
   this.add_btn = function(btn_name, toast_msg, fn){
+    //check isInitialized
+    if(!this._initialized){
+      return errorMessage("TackleBox is not initialized.");
+    }
+    //check parameters
+    if(typeof btn_name == 'undefined' ||
+       typeof toast_msg == 'undefined' ||
+       typeof fn == 'undefined'){
+         return errorMessage("TackleBox.add_btn() requires three paramaters: btn_name, toast_msg, and fn.");
+       }
+
     //get parent pane
     var tacklePane = document.getElementById("tacklebox-pane");
 
@@ -97,8 +136,60 @@ function TackleBox(){
     addEvent(btn, 'click', func);
   };
 
-  //call init() function on creation
-  this.init();
+  /* Remove a button from the tacklebox */
+  this.remove_btn = function(btn_id){
+    //get parent pane
+    var tacklePane = document.getElementById("tacklebox-pane");
+
+    //get button to remove
+    var btnToRemove = document.getElementById(btn_id);
+
+    //stop, if no button is found
+    if(btnToRemove === null){ return errorMessage("Unable to find button in DOM."); }
+
+    //remove event listener to prevent memory leak
+    btnToRemove.removeEventListener('click', btnToRemove.onclick);
+
+    //remove button
+    tacklePane.removeChild(btnToRemove);
+
+  };
+
+/* Destroy TackleBox object and remove from DOM */
+  this.destroy = function(){
+    //stop if already destroyed
+    if(!this._initialized){
+      return;
+    }
+
+    //get all created objects
+    var tacklePane = document.getElementById("tacklebox-pane");
+    var tackleToast = document.getElementById("tacklebox-toast");
+    var tackleMsg = document.getElementById("tacklebox-msg");
+
+    //destroy toast message
+    tackleToast.removeChild(tackleMsg);
+
+    //destroy toast container
+    document.body.removeChild(tackleToast)
+
+    //destroy all buttons
+    var tackleButtons = document.getElementsByClassName("tacklebox-btn")
+    while (tackleButtons.length > 0) {
+      tacklePane.removeChild(tackleButtons[0]);
+    }
+
+    //destroy tacklebox pane
+    document.body.removeChild(tacklePane);
+
+    //destroy tacklebox stylesheet
+    var tackleStyle = document.getElementsByClassName("tacklebox-style")
+    while (tackleStyle.length > 0) {
+      document.body.removeChild(tackleStyle[0]);
+    }
+
+    this._initialized = false;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -124,7 +215,7 @@ function fn_all(){
 /* Make a toast popup with a given message*/
 function make_toast(msg){
   //Don't make toast without a message
-  if(typeof msg == 'undefined' || msg == null) { return; }
+  if(typeof msg === 'undefined' || msg === null) { return; }
 
   //get DOM elements to make toast
   var toast_pane = document.getElementById('tacklebox-toast');
@@ -153,6 +244,23 @@ function addEvent(element, evnt, funct){
 /* Add stylesheed from string*/
 function addStyleString(str) {
     var stylesheet = document.createElement('style');
+    stylesheet.className = "tacklebox-style";
     stylesheet.innerHTML = str;
     document.body.appendChild(stylesheet);
+}
+
+/* Format error string*/
+function errorMessage(msg){
+  if(typeof msg == 'undefined' || msg === null){
+    msg = "";
+  }
+  return "ERROR: " + msg
+}
+
+/* Format error string*/
+function warnMessage(msg){
+  if(typeof msg == 'undefined' || msg === null){
+    msg = "";
+  }
+  return "WARNING: " + msg
 }
