@@ -1,7 +1,7 @@
 /**
  * TackleBox.js: Web Development Tool Overlay
  * https://github.com/apsking/Tacklebox.js
- *Licensed under the MIT license.
+ * Licensed under the MIT license.
  *
  * @version 1.0
  * @author Alex King
@@ -10,13 +10,6 @@
  *
  * Inspired by work with Zach Baker
  *
- * Example Usage:
- * Reference tacklebox.js from any existing webpage during development to
- * use as an addition set of easy-to-access tools
- *
- * Insert from local .JS:
- *
- * <script src="./src/tacklebox.js"></script>
  */
 
  /////////////////////////////////////////////////////////////////////////
@@ -49,6 +42,7 @@ function fn5(){ }
 /////////////////////////////////////////////////////////////////////////
 function TackleBox(){
   this._initialized = false;
+  this._toastTimeout = 2000;
 
   /*Initialize all tacklebox elements*/
   this.init = function(){
@@ -74,19 +68,19 @@ function TackleBox(){
     if(!existingPane){
       document.body.appendChild(pane);
     }else{
-      console.log(warnMessage("TackleBox pane already exists"))
+      console.log(_formatMessage('warn', "TackleBox pane already exists"))
     }
 
     if(!existingToast){
       document.body.appendChild(toast);
     }else{
-      console.log(warnMessage("TackleBox toast already exists"))
+      console.log(_formatMessage('warn', "TackleBox toast already exists"))
     }
 
     if(!existingToastMsg){
       toast.appendChild(msg);
     }else{
-      console.log(warnMessage("TackleBox toast message already exists"))
+      console.log(_formatMessage('warn', "TackleBox toast message already exists"))
     }
 
     //insert stylesheet
@@ -94,7 +88,7 @@ function TackleBox(){
     //then, assign minified string to tackleboxStyle
     if(!existingToastMsg){
       var tackleboxStyle = '#tacklebox-pane{background-color:#039be5;box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);box-sizing:initial !important;min-height:40px;left:0;padding:10px 10px 3px 10px;position:fixed;top:0;z-index:1000000}#tacklebox-pane button{background-color:#fff;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.24);font:10pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;height:40px;margin-bottom:7px;margin-right:7px;outline:0;transition:all .3s cubic-bezier(.25, .8, .25, 1);min-width:40px}#tacklebox-pane button:nth-last-of-type(1){margin-right:0}#tacklebox-pane button:hover{box-shadow:0 10px 20px rgba(0,0,0,0.25),0 7px 7px rgba(0,0,0,0.22)}#tacklebox-pane button:active,#tacklebox-pane button:focus{box-shadow:0 4px 8px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22)}#tacklebox-msg{display:table-cell;font:11pt "Gill Sans","Gill Sans MT",Calibri,sans-serif;vertical-align:middle}#tacklebox-toast{box-shadow:0 6px 12px rgba(0,0,0,0.25),0 4px 4px rgba(0,0,0,0.22);position:fixed;min-height:60px;max-width:50%;padding:10px 15px;background-color:#039be5;right:0;top:0;vertical-align:middle;opacity:0;transition:.5s opacity;display:table;z-index:1000001}#tacklebox-toast.open{opacity:1;transition:.25s opacity}'
-      addStyleString(tackleboxStyle);
+      _addStyleString(tackleboxStyle);
     }
 
     this._initialized = true;
@@ -104,13 +98,13 @@ function TackleBox(){
   this.add_btn = function(btn_name, toast_msg, fn){
     //check isInitialized
     if(!this._initialized){
-      return errorMessage("TackleBox is not initialized.");
+      return _formatMessage('error', "TackleBox is not initialized.");
     }
     //check parameters
     if(typeof btn_name == 'undefined' ||
        typeof toast_msg == 'undefined' ||
        typeof fn == 'undefined'){
-         return errorMessage("TackleBox.add_btn() requires three paramaters: btn_name, toast_msg, and fn.");
+         return _formatMessage('error', "TackleBox.add_btn() requires three paramaters: btn_name, toast_msg, and fn.");
        }
 
     //get parent pane
@@ -125,15 +119,16 @@ function TackleBox(){
     btn.id = 'tacklebox-btn-' + newButtonNumber;
     btn.innerHTML = btn_name;
 
-  //add button to DOM
+    //add button to DOM
     tacklePane.appendChild(btn);
 
     //assign click handler
+    var $this = this;
     var func = function(){
       fn();
-      make_toast(toast_msg);
+      $this.make_toast(toast_msg);
     }
-    addEvent(btn, 'click', func);
+    _addEvent(btn, 'click', func);
   };
 
   /* Remove a button from the tacklebox */
@@ -188,7 +183,44 @@ function TackleBox(){
       document.body.removeChild(tackleStyle[0]);
     }
 
+    //update initialized setting
     this._initialized = false;
+  };
+
+  /* Make a toast popup with a given message*/
+  this.make_toast = function (msg){
+    //Don't make toast without a message
+    if(typeof msg === 'undefined' || msg === null) { return; }
+
+    //get DOM elements to make toast
+    var toast_pane = document.getElementById('tacklebox-toast');
+    var toast_msg = document.getElementById('tacklebox-msg');
+
+    //set toast message
+    toast_msg.innerHTML = msg;
+
+    //show the toast message
+    toast_pane.className = 'open';
+
+    //remove the toast message in 2s
+    setTimeout(function(){
+      toast_pane.className = '';
+    }, this._toastTimeout);
+  };
+
+  /* Set toast timeout (in milliseconds)*/
+  this.setToastTimeout = function(milliseconds){
+    //safely bound parameter
+    if(typeof milliseconds === 'undefined' ||
+              milliseconds === null ||
+              !isInt(milliseconds) ||
+              milliseconds <= 0) {
+      return _formatMessage('error', "Toast timeout must be a non-zero, positive integer.");
+    }else{
+      this._toastTimeout = milliseconds;
+    }
+
+    return milliseconds;
   }
 }
 
@@ -212,29 +244,8 @@ function fn_all(){
   }
 }
 
-/* Make a toast popup with a given message*/
-function make_toast(msg){
-  //Don't make toast without a message
-  if(typeof msg === 'undefined' || msg === null) { return; }
-
-  //get DOM elements to make toast
-  var toast_pane = document.getElementById('tacklebox-toast');
-  var toast_msg = document.getElementById('tacklebox-msg');
-
-  //set toast message
-  toast_msg.innerHTML = msg;
-
-  //show the toast message
-  toast_pane.className = 'open';
-
-  //remove the toast message in 2s
-  setTimeout(function(){
-    toast_pane.className = '';
-  }, 2000);
-}
-
 /* Safe assignment of event handlers*/
-function addEvent(element, evnt, funct){
+function _addEvent(element, evnt, funct){
   if (element.attachEvent)
    return element.attachEvent('on'+evnt, funct);
   else
@@ -242,25 +253,35 @@ function addEvent(element, evnt, funct){
 }
 
 /* Add stylesheed from string*/
-function addStyleString(str) {
+function _addStyleString(str) {
     var stylesheet = document.createElement('style');
     stylesheet.className = "tacklebox-style";
     stylesheet.innerHTML = str;
     document.body.appendChild(stylesheet);
 }
 
-/* Format error string*/
-function errorMessage(msg){
+/* Format message string*/
+function _formatMessage(type, msg){
+  var msgPrepend = "";
   if(typeof msg == 'undefined' || msg === null){
     msg = "";
   }
-  return "ERROR: " + msg
+
+  //Prepend error/warning label if type is set
+  if(type === 'warn'){
+    msgPrepend = "WARN: ";
+  }else if(type === 'error'){
+    msgPrepend = "ERROR: ";
+  }
+
+  return msgPrepend + msg
 }
 
-/* Format error string*/
-function warnMessage(msg){
-  if(typeof msg == 'undefined' || msg === null){
-    msg = "";
+/* Validate integer*/
+function isInt(value) {
+  if (isNaN(value)) {
+    return false;
   }
-  return "WARNING: " + msg
+  var x = parseFloat(value);
+  return (x | 0) === x;
 }
