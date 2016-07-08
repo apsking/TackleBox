@@ -1,11 +1,16 @@
+/////////////////////////////////////////////////////////////////////////
+////////////////////       JASMINE TEST CASES         ///////////////////
+/////////////////////////////////////////////////////////////////////////
 describe( "TackleBox.js Plugin", function () {
-  var tacklebox
+  var tacklebox; //define TackleBox object
 
+  //initialize TackleBox before every test case
   beforeAll(function() {
     tacklebox = new TackleBox();
     tacklebox.init();
   });
 
+  //destroy DOM object after every case to reset
   afterAll(function() {
     tacklebox.destroy();
   });
