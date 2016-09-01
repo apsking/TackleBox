@@ -1,5 +1,5 @@
 ## TackleBox.js
-TackleBox.js is a lightweight plugin to allow developers to quickly assign commonly used functions to a easy-to-use GUI that won't interfere with your current webpage.
+TackleBox.js is a lightweight plugin to allow developers to quickly assign commonly used functions to a easy-to-use, material design GUI that won't interfere with your current webpage.
 
 ## Setup
 1. Download local copy of `tacklebox.js`.
