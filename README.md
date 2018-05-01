@@ -13,26 +13,26 @@ The TackleBox can also be modified in the console. The primary TackleBox object,
 
 ## API
 Tacklebox functionality has been implemented within the primary `TackleBox` object. The `TackleBox` object has the following functions:
-######add_btn()
+###### add_btn()
 `@param string btn_name` //Name to display on the button <br>
 `@param string toast_msg` //Message to display in the toast message on click. Pass 'null' to display no toast message. <br>
 `@param function fn` //Function to call on button click. <br>
 Adds a new button to the TackleBox Pane.
 
-######destroy()
+###### destroy()
 Destroys all DOM elements and event handlers for `TackleBox`. Functions other than `init()` will not function correctly after content has been destroyed.
 
-######init()
+###### init()
 Initializes all DOM elements and event handlers to use `TackleBox`.
 
-######make_toast()
+###### make_toast()
 `@param string msg` //Message to display in toast popup <br>
 Opens a toast popup with the provided message. Toast Timeout can be modified with the `setToastTimeout` function.
 
-######remove_btn()
+###### remove_btn()
 `@param string btn_id` //Id for the button to remove. <br>
 Removes an existing button from the TackleBox Pane.
 
-######setToastTimeout()
+###### setToastTimeout()
 `@param int msg` //Timeout length (in milliseconds)<br>
 Set the duration to display toast popups for the `make_toast()` function.
